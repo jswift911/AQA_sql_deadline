@@ -11,4 +11,11 @@ public class User {
     private int id;
     private String login;
     private String password;
+
+    public String getPassword() {
+        if (getLogin().equals("vasya")) {
+            return "qwerty123";
+        }
+        return "123qwerty";
+    }
 }

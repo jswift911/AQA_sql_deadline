@@ -23,7 +23,6 @@ public class AuthTest {
     }
 
     @AfterAll
-    //@SneakyThrows
     public static void cleanUp() {
         DataHelper.cleanAuthCodeFromDB();
         DataHelper.cleanCardsFromDB();

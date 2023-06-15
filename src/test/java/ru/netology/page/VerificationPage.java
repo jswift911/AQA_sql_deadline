@@ -32,7 +32,7 @@ public class VerificationPage {
     public void blockedVerify() {
         codeField.setValue(DataHelper.getInvalidAuthCode());
         verifyButton.click();
-        getVerifyError();
+        getBlockedVerifyError();
     }
 
     public void getVerifyError() {

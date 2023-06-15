@@ -7,7 +7,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.data.DataHelper;
+import ru.netology.page.DashboardPage;
 import ru.netology.page.LoginPage;
+import ru.netology.page.VerificationPage;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.open;
@@ -15,15 +17,13 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class AuthTest {
 
-    private final SelenideElement errorNotification = $("[data-test-id=error-notification]");
-
     @BeforeEach
     void setup() {
         open("http://localhost:9999");
     }
 
     @AfterAll
-    @SneakyThrows
+    //@SneakyThrows
     public static void cleanUp() {
         DataHelper.cleanAuthCodeFromDB();
         DataHelper.cleanCardsFromDB();
@@ -34,68 +34,54 @@ public class AuthTest {
     // 1) Тест на корректную авторизацию
 
     @Test
-    @SneakyThrows
     void shouldSuccessfulLoginIfRegisteredActiveUser() {
         var loginPage = new LoginPage();
-        var user = DataHelper.getFirstUserFromDB();
-        var verificationPage = loginPage.validLogin(user.getLogin(), user.getPassword());
-        var authCode = DataHelper.getAuthCodeFromDB();
-        var dashboardPage = verificationPage.validVerify(authCode);
-        dashboardPage.getHeading().shouldBe(exactText("Личный кабинет"));
+        var authInfo = DataHelper.getAuthInfo();
+        VerificationPage verificationPage = loginPage.validLogin(authInfo);
+        var verificationCode = DataHelper.getAuthCodeFromDB();
+        verificationPage.validVerify(verificationCode);
     }
 
     // 2) Тест на неправильный password
 
     @Test
-    @SneakyThrows
     void shouldLoginIfNotRegisteredActiveUserPassword() {
         var loginPage = new LoginPage();
-        var user = DataHelper.getFirstUserFromDB();
-        loginPage.invalidLogin(user.getLogin(), DataHelper.getInvalidPassword());
-        errorNotification.shouldHave(text("Ошибка! Неверно указан логин или пароль"));
+        var authInfo = DataHelper.getAuthInfo();
+        loginPage.invalidPassword(authInfo);
     }
 
     // 3) Тест на неправильный login
 
     @Test
-    @SneakyThrows
     void shouldLoginIfNotRegisteredActiveUserLogin() {
         var loginPage = new LoginPage();
-        var user = DataHelper.getFirstUserFromDB();
-        loginPage.invalidLogin(DataHelper.getInvalidLogin(), user.getPassword());
-        errorNotification.shouldHave(text("Ошибка! Неверно указан логин или пароль"));
+        var authInfo = DataHelper.getAuthInfo();
+        loginPage.invalidLogin(authInfo);
     }
 
     // 4) Тест на неправильный auth_code
 
     @Test
-    @SneakyThrows
     void shouldIncorrectAuthCode() {
         var loginPage = new LoginPage();
-        var user = DataHelper.getFirstUserFromDB();
-        var verificationPage = loginPage.validLogin(user.getLogin(), user.getPassword());
-        var invalidAuthCode = DataHelper.getInvalidPassword();
-        verificationPage.invalidVerify(invalidAuthCode);
-        errorNotification.shouldHave(text("Ошибка! Неверно указан код! Попробуйте ещё раз."));
+        var authInfo = DataHelper.getAuthInfo();
+        VerificationPage verificationPage = loginPage.validLogin(authInfo);
+        verificationPage.invalidVerify();
     }
 
     // 5) Тест на блокировку приложения после 3-ех некорректных попыток авторизации
 
     @Test
-    @SneakyThrows
     void shouldBlockedAppAfterLimitTries() {
         var loginPage = new LoginPage();
-        var user = DataHelper.getFirstUserFromDB();
-        var verificationPage = loginPage.validLogin(user.getLogin(), user.getPassword());
-        var invalidAuthCode = DataHelper.getInvalidPassword();
-        verificationPage.invalidVerify(invalidAuthCode);
-        errorNotification.shouldHave(text("Ошибка! Неверно указан код! Попробуйте ещё раз."));
+        var authInfo = DataHelper.getAuthInfo();
+        VerificationPage verificationPage = loginPage.validLogin(authInfo);
+        verificationPage.invalidVerify();
         open("http://localhost:9999");
         var loginPage2 = new LoginPage();
-        var user2 = DataHelper.getFirstUserFromDB();
-        var verificationPage2 = loginPage2.validLogin(user2.getLogin(), user2.getPassword());
-        var invalidAuthCode2 = DataHelper.getInvalidPassword();
-        verificationPage2.invalidVerify(invalidAuthCode2);
-        errorNotification.shouldHave(text("Ошибка! Превышено количество попыток ввода кода!"));
+        var authInfo2 = DataHelper.getAuthInfo();
+        VerificationPage verificationPage2 = loginPage2.validLogin(authInfo2);
+        verificationPage2.blockedVerify();
     }
 }

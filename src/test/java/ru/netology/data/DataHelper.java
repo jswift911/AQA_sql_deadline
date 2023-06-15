@@ -1,10 +1,11 @@
 package ru.netology.data;
 
 import com.github.javafaker.Faker;
+import lombok.SneakyThrows;
+import lombok.Value;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
-import ru.netology.mode.User;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -21,19 +22,27 @@ public class DataHelper {
         return faker.name().firstName();
     }
 
-    public static User getFirstUserFromDB() throws SQLException {
-        var runner = new QueryRunner();
-        var usersSQL = "SELECT login,password FROM users;";
-        try (
-                var conn = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/app", "app", "pass"
-                )
-        ) {
-            return runner.query(conn, usersSQL, new BeanHandler<>(User.class));
-        }
+    public static String getInvalidAuthCode() {
+        return faker.number().digits(6);
     }
 
-    public static String getAuthCodeFromDB() throws SQLException {
+    @Value
+    public static class AuthInfo {
+        private String login;
+        private String password;
+    }
+
+    public static AuthInfo getAuthInfo() {
+        return new AuthInfo("vasya", "qwerty123");
+    }
+
+    public static AuthInfo getOtherAuthInfo(AuthInfo original) {
+        return new AuthInfo("petya", "123qwerty");
+    }
+
+
+    @SneakyThrows
+    public static String getAuthCodeFromDB() {
         var runner = new QueryRunner();
         var authCodeSQL = "SELECT code FROM auth_codes ORDER BY created DESC LIMIT 1";
         try (
@@ -45,7 +54,8 @@ public class DataHelper {
         }
     }
 
-    public static void cleanAuthCodeFromDB() throws SQLException {
+    @SneakyThrows
+    public static void cleanAuthCodeFromDB()  {
         var runner = new QueryRunner();
         var authCodeSQL = "DELETE FROM auth_codes;";
         try (
@@ -57,7 +67,8 @@ public class DataHelper {
         }
     }
 
-    public static void cleanUsersFromDB() throws SQLException {
+    @SneakyThrows
+    public static void cleanUsersFromDB()  {
         var runner = new QueryRunner();
         var authCodeSQL = "DELETE FROM users;";
         try (
@@ -69,7 +80,8 @@ public class DataHelper {
         }
     }
 
-    public static void cleanCardsFromDB() throws SQLException {
+    @SneakyThrows
+    public static void cleanCardsFromDB() {
         var runner = new QueryRunner();
         var authCodeSQL = "DELETE FROM cards;";
         try (
@@ -81,7 +93,8 @@ public class DataHelper {
         }
     }
 
-    public static void cleanCardTransactionsFromDB() throws SQLException {
+    @SneakyThrows
+    public static void cleanCardTransactionsFromDB() {
         var runner = new QueryRunner();
         var authCodeSQL = "DELETE FROM card_transactions;";
         try (
